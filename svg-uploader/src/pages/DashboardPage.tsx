@@ -17,16 +17,28 @@ interface DesignSummary {
 export const DashboardPage: React.FC = () => {
     const [designs, setDesigns] = useState<DesignSummary[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch(`${API_URL}/designs`)
-            .then(res => res.json())
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to fetch');
+                return data;
+            })
             .then(data => {
-                setDesigns(data);
+                // Defensive check: ensure data is an array
+                if (Array.isArray(data)) {
+                    setDesigns(data);
+                } else {
+                    console.error('API returned non-array data:', data);
+                    setDesigns([]);
+                }
                 setLoading(false);
             })
             .catch(err => {
-                console.error('Failed to fetch designs', err);
+                console.error('Failed to fetch designs:', err);
+                setError(err.message);
                 setLoading(false);
             });
     }, []);
@@ -73,8 +85,22 @@ export const DashboardPage: React.FC = () => {
                     </Link>
                 </div>
 
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mb-8 p-4 glass rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3"
+                    >
+                        <AlertTriangle size={20} />
+                        <div>
+                            <div className="font-bold">Backend Error</div>
+                            <div className="text-sm opacity-80">{error}</div>
+                        </div>
+                    </motion.div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {designs.map((design, index) => (
+                    {Array.isArray(designs) && designs.map((design, index) => (
                         <Link key={design._id} to={`/design/${design._id}`}>
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -116,7 +142,7 @@ export const DashboardPage: React.FC = () => {
                         </Link>
                     ))}
 
-                    {designs.length === 0 && (
+                    {!loading && designs.length === 0 && !error && (
                         <div className="col-span-full py-20 text-center glass-panel rounded-3xl">
                             <p className="text-gray-500 text-lg">No designs found. Upload one to get started!</p>
                         </div>
