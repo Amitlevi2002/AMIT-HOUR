@@ -1,0 +1,18 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { UploadPage } from './pages/UploadPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { DesignDetailPage } from './pages/DesignDetailPage';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<UploadPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/design/:id" element={<DesignDetailPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
