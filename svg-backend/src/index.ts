@@ -14,9 +14,21 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+const maskedURI = MONGO_URI.replace(/:([^@]+)@/, ':****@');
+console.log(`Attempting to connect to MongoDB: ${maskedURI}`);
+
+mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 30000, // Wait 30 seconds for server selection
+    connectTimeoutMS: 30000,         // Wait 30 seconds for initial connection
+})
+    .then(() => console.log('Connected to MongoDB Atlas successfully'))
+    .catch(err => {
+        console.error('CRITICAL: MongoDB connection error details:');
+        console.error(err);
+    });
+
+// Disable buffering so queries fail fast if not connected
+mongoose.set('bufferCommands', false);
 
 import designRoutes from './routes/designs';
 

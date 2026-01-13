@@ -24,9 +24,12 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         await design.save();
 
         res.status(201).json(design);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error processing upload:', error);
-        res.status(500).json({ error: 'Failed to process SVG' });
+        res.status(500).json({
+            error: 'Failed to process SVG',
+            details: error.message
+        });
     }
 });
 
@@ -35,8 +38,12 @@ router.get('/designs', async (req, res) => {
     try {
         const designs = await Design.find({}, 'filename status itemsCount createdAt issues');
         res.json(designs);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch designs' });
+    } catch (error: any) {
+        console.error('Error fetching designs:', error);
+        res.status(500).json({
+            error: 'Database connection failed. Please check MONGO_URI and IP Whitelisting.',
+            details: error.message
+        });
     }
 });
 
@@ -48,8 +55,12 @@ router.get('/designs/:id', async (req, res) => {
             return res.status(404).json({ error: 'Design not found' });
         }
         res.json(design);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch design details' });
+    } catch (error: any) {
+        console.error('Error fetching design details:', error);
+        res.status(500).json({
+            error: 'Failed to fetch design details',
+            details: error.message
+        });
     }
 });
 
